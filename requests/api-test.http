@@ -3,14 +3,13 @@ GET http://localhost:3001/api/notes
 
 
 ### DELETE request to example server
-DELETE http://localhost:3001/api/notes/2
+DELETE http://localhost:3001/api/notes/67a8be1b9242b83acd6249c9
 
 ### POST request to example server
 POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-  "id": "4",
   "content": "Some note",
   "important": true
 }
