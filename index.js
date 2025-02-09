@@ -11,32 +11,48 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
-app.get("/api/notes", (request, response) => {
+app.get("/api/notes", (request, response, next) => {
   NoteModel
     .find()
     .then((notes) => {
       response.json(notes);
     })
-    .catch((error) => {
-      response.status(500).json({error: error.message});
-    });
+    .catch((error) => next(error));
 });
 
-app.get("/api/notes/:id", (request, response) => {
+app.post("/api/notes", (request, response, next) => {
+  const body = request.body;
+  if (body.content === undefined || body.content.trim() === "") {
+    return response.status(400).json({error: "Content is missing"});
+  }
+
+  const newNote = new NoteModel({
+    content: body.content,
+    important: body.important || false,
+  });
+
+  newNote
+    .save()
+    .then((savedNote) => {
+      response.json(savedNote);
+    })
+    .catch((error) => next(error));
+});
+
+app.get("/api/notes/:id", (request, response, next) => {
   NoteModel
     .findById(request.params.id)
     .then((note) => {
       if (!note) {
-        return response.status(404).end()
+        response.status(404).end()
+      } else {
+        response.json(note);
       }
-      response.json(note);
     })
-    .catch((error) => {
-      response.status(500).json({error: error.message});
-    })
+    .catch((error) => next(error))
 });
 
-app.put("/api/notes/:id", (request, response) => {
+app.put("/api/notes/:id", (request, response, next) => {
   NoteModel
     .findById(request.params.id)
     .then((note) => {
@@ -57,39 +73,29 @@ app.put("/api/notes/:id", (request, response) => {
         response.status(404).end();
       }
     })
-    .catch((error) => {
-      response.status(500).json({error: error.message});
-    });
+    .catch((error) => next(error));
 });
 
-app.delete("/api/notes/:id", (request, response) => {
+app.delete("/api/notes/:id", (request, response, next) => {
   NoteModel
     .findByIdAndDelete(request.params.id)
     .then(() => {
       response.status(204).end();
     })
-    .catch((error) => {
-      response.status(500).json({error: error.message});
-    })
+    .catch((error) => next(error));
 });
 
-app.post("/api/notes", (request, response) => {
-  const body = request.body;
-  if (body.content === undefined || body.content.trim() === "") {
-    return response.status(400).json({error: "Content is missing"});
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message);
+
+  if (err.name === "CastError") {
+    return res.status(400).json({error: "Malformed id"});
   }
 
-  const newNote = new NoteModel({
-    content: body.content,
-    important: body.important || false,
-  });
+  next(err);
+};
 
-  newNote
-    .save()
-    .then((savedNote) => {
-      response.json(savedNote);
-    })
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

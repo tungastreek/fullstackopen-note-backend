@@ -1,9 +1,16 @@
-### GET request to example server
+### GET all notes
 GET http://localhost:3001/api/notes
 
+### PUT existing note
+PUT http://localhost:3001/api/notes/67a871106e36f3d9b497c6e9
 
-### DELETE request to example server
-DELETE http://localhost:3001/api/notes/67a8be1b9242b83acd6249c9
+{
+  "content": HTML is easy",
+  "important": true
+}
+
+### DELETE a note
+DELETE http://localhost:3001/api/notes/67a871106e36f3d9b497c6e8
 
 ### POST request to example server
 POST http://localhost:3001/api/notes
