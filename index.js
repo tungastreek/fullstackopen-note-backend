@@ -22,9 +22,6 @@ app.get("/api/notes", (request, response, next) => {
 
 app.post("/api/notes", (request, response, next) => {
   const body = request.body;
-  if (body.content === undefined || body.content.trim() === "") {
-    return response.status(400).json({error: "Content is missing"});
-  }
 
   const newNote = new NoteModel({
     content: body.content,
@@ -90,6 +87,10 @@ const errorHandler = (err, req, res, next) => {
 
   if (err.name === "CastError") {
     return res.status(400).json({error: "Malformed id"});
+  }
+
+  if (err.name === "ValidationError") {
+    return res.status(400).json({error: `Validation error ${err.message}`});
   }
 
   next(err);
