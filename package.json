@@ -4,14 +4,14 @@
   "description": "Backend for Note app",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "NODE_ENV=prod node index.js",
+    "dev": "NODE_ENV=dev nodemon index.js",
+    "test": "NODE_ENV=test node --test",
     "lint": "eslint .",
     "build:ui": "rm -rf dist && cd ../../practice/part2/notes/ && npm run build && cp -r dist ../../../backend-practice/note/",
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
-    "logs:prod": "fly logs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "logs:prod": "fly logs"
   },
   "author": "Le Son Tung",
   "license": "ISC",
@@ -26,8 +26,10 @@
     "@eslint/js": "^9.20.0",
     "@flydotio/dockerfile": "^0.7.4",
     "@stylistic/eslint-plugin-js": "^3.1.0",
+    "@types/supertest": "^6.0.2",
     "eslint": "^9.20.1",
     "globals": "^15.14.0",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "supertest": "^7.0.0"
   }
 }
