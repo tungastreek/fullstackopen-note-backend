@@ -16,4 +16,3 @@ test('notes are returned as JSON', async () => {
 after(async () => {
   await mongoose.connection.close();
 });
-

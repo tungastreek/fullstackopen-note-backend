@@ -1,7 +1,7 @@
 import globals from 'globals';
 import js from '@eslint/js';
-import stylisticJs from '@stylistic/eslint-plugin-js'
-
+import prettier from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -10,7 +10,8 @@ export default [
     ignores: ['dist/**', 'build/**'],
   },
   {
-    files: ['**/*.js'], languageOptions: {
+    files: ['**/*.js'],
+    languageOptions: {
       sourceType: 'commonjs',
       globals: {
         ...globals.node
@@ -18,33 +19,18 @@ export default [
       ecmaVersion: 'latest',
     },
     plugins: {
-      '@stylistic/js': stylisticJs
+      'prettier': prettier
     },
     rules: {
-      '@stylistic/js/indent': [
-        'error',
-        2
-      ],
-      '@stylistic/js/linebreak-style': [
-        'error',
-        'unix'
-      ],
-      '@stylistic/js/quotes': [
-        'error',
-        'single'
-      ],
-      '@stylistic/js/semi': [
-        'error',
-        'always'
-      ],
+      // ✅ Let Prettier handle all formatting
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+
+      // ✅ Keep ESLint for best practices
       'eqeqeq': 'error',
       'no-trailing-spaces': 'error',
-      'object-curly-spacing': [
-        'error', 'always'
-      ],
-      'arrow-spacing': [
-        'error', { 'before': true, 'after': true },
-      ],
+      'object-curly-spacing': ['error', 'always'],
+      'arrow-spacing': ['error', { 'before': true, 'after': true }],
       'no-console': 'off',
     },
   },

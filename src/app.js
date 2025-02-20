@@ -12,8 +12,7 @@ mongoose.set('strictQuery', true);
 mongoose
   .connect(config.MONGODB_URI)
   .then(() => logger.info('Connected to MongoDB'))
-  .catch(error => logger.error('Error connecting to MongoDB:', error.message));
-
+  .catch((error) => logger.error('Error connecting to MongoDB:', error.message));
 
 const app = express();
 app.use(cors());

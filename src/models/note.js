@@ -14,7 +14,7 @@ noteSchema.set('toJSON', {
     ret.id = ret._id.toString();
     delete ret._id;
     delete ret.__v;
-  }
+  },
 });
 
 const NoteModel = mongoose.model('Note', noteSchema);
