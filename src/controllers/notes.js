@@ -24,7 +24,7 @@ notesRouter.get('/', async (req, res) => {
 notesRouter.post('/', async (req, res) => {
   const { error } = noteCreateSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    throw new Joi.ValidationError(error.details[0].message);
   }
 
   const { content, important = false } = req.body;
@@ -47,7 +47,7 @@ notesRouter.get('/:id', async (req, res) => {
 notesRouter.put('/:id', async (req, res) => {
   const { error } = noteUpdateSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    throw new Joi.ValidationError(error.details[0].message);
   }
 
   const note = await NoteModel.findById(req.params.id);
@@ -64,7 +64,10 @@ notesRouter.put('/:id', async (req, res) => {
 
 // Delete a note by ID
 notesRouter.delete('/:id', async (req, res) => {
-  await NoteModel.findByIdAndDelete(req.params.id);
+  const note = await NoteModel.findByIdAndDelete(req.params.id);
+  if (!note) {
+    return res.status(404).end();
+  }
   res.status(204).end();
 });
 
