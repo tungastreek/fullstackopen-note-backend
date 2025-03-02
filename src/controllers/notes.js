@@ -15,17 +15,13 @@ const noteUpdateSchema = Joi.object({
 });
 
 // Get all notes
-notesRouter.get('/', async (req, res, next) => {
-  try {
-    const notes = await NoteModel.find({});
-    res.json(notes);
-  } catch (error) {
-    next(error);
-  }
+notesRouter.get('/', async (req, res) => {
+  const notes = await NoteModel.find({});
+  res.json(notes);
 });
 
 // Create a new note
-notesRouter.post('/', async (req, res, next) => {
+notesRouter.post('/', async (req, res) => {
   const { error } = noteCreateSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
@@ -34,58 +30,42 @@ notesRouter.post('/', async (req, res, next) => {
   const { content, important = false } = req.body;
   const note = new NoteModel({ content, important });
 
-  try {
-    const savedNote = await note.save();
-    res.json(savedNote);
-  } catch (error) {
-    next(error);
-  }
+  const savedNote = await note.save();
+  res.status(201).json(savedNote);
 });
 
 // Get a note by ID
-notesRouter.get('/:id', async (req, res, next) => {
-  try {
-    const note = await NoteModel.findById(req.params.id);
-    if (!note) {
-      return res.status(404).end();
-    }
-    res.json(note);
-  } catch (error) {
-    next(error);
+notesRouter.get('/:id', async (req, res) => {
+  const note = await NoteModel.findById(req.params.id);
+  if (!note) {
+    return res.status(404).end();
   }
+  res.json(note);
 });
 
 // Update a note by ID
-notesRouter.put('/:id', async (req, res, next) => {
+notesRouter.put('/:id', async (req, res) => {
   const { error } = noteUpdateSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
 
-  try {
-    const note = await NoteModel.findById(req.params.id);
-    if (!note) {
-      return res.status(404).end();
-    }
-
-    note.content = req.body.content;
-    note.important = req.body.important;
-
-    const updatedNote = await note.save();
-    res.json(updatedNote);
-  } catch (error) {
-    next(error);
+  const note = await NoteModel.findById(req.params.id);
+  if (!note) {
+    return res.status(404).end();
   }
+
+  note.content = req.body.content;
+  note.important = req.body.important;
+
+  const updatedNote = await note.save();
+  res.json(updatedNote);
 });
 
 // Delete a note by ID
-notesRouter.delete('/:id', async (req, res, next) => {
-  try {
-    await NoteModel.findByIdAndDelete(req.params.id);
-    res.status(204).end();
-  } catch (error) {
-    next(error);
-  }
+notesRouter.delete('/:id', async (req, res) => {
+  await NoteModel.findByIdAndDelete(req.params.id);
+  res.status(204).end();
 });
 
 module.exports = notesRouter;

@@ -18,4 +18,6 @@ const errorHandler = (err, req, res, next) => {
   next(err);
 };
 
-module.exports = { errorHandler, unknownEndpoint };
+const shouldSkipLog = () => process.env.NODE_ENV === 'test';
+
+module.exports = { errorHandler, unknownEndpoint, shouldSkipLog };

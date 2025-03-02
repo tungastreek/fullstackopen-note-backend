@@ -14,12 +14,12 @@ export default [
     languageOptions: {
       sourceType: 'commonjs',
       globals: {
-        ...globals.node
+        ...globals.node,
       },
       ecmaVersion: 'latest',
     },
     plugins: {
-      'prettier': prettier
+      prettier: prettier,
     },
     rules: {
       // ✅ Let Prettier handle all formatting
@@ -27,10 +27,10 @@ export default [
       'prettier/prettier': 'error',
 
       // ✅ Keep ESLint for best practices
-      'eqeqeq': 'error',
+      eqeqeq: 'error',
       'no-trailing-spaces': 'error',
       'object-curly-spacing': ['error', 'always'],
-      'arrow-spacing': ['error', { 'before': true, 'after': true }],
+      'arrow-spacing': ['error', { before: true, after: true }],
       'no-console': 'off',
     },
   },

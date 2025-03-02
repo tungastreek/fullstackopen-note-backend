@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -18,7 +19,7 @@ const app = express();
 app.use(cors());
 app.use(express.static('dist'));
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(morgan('dev', { skip: middleware.shouldSkipLog }));
 app.use('/api/notes', notesRouter);
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
