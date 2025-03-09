@@ -1,0 +1,24 @@
+### GET all notes
+GET http://localhost:3001/api/notes
+
+### POST create a new note
+POST http://localhost:3001/api/notes
+content-type: application/json
+
+{
+  "content": "CSS is hard",
+  "important": true,
+  "userId": "67cc19d77ce73ad592f4c590"
+}
+
+### PUT update existing note
+PUT http://localhost:3001/api/notes/67a871106e36f3d9b497c6e9
+content-type: application/json
+
+{
+  "content": "HTML is actually hard",
+  "important": false
+}
+
+### DELETE a note
+DELETE http://localhost:3001/api/notes/67b0d9f88fb6610f302b27aa

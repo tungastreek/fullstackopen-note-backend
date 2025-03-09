@@ -5,111 +5,103 @@ const mongoose = require('mongoose');
 
 const NoteModel = require('../src/models/note');
 const app = require('../src/app');
-const noteApiTestHelper = require('./note-api-test-helper');
+const { initialNotes } = require('./note-api-test-helper');
 
 const api = supertest(app);
 
-beforeEach(async () => {
-  await NoteModel.deleteMany({});
-
-  await Promise.all(noteApiTestHelper.initialNotes.map((note) => new NoteModel(note).save()));
-});
-
-describe('when there is initially some notes saved', () => {
-  test('notes are returned as JSON', async () => {
-    await api
-      .get('/api/notes')
-      .expect(200)
-      .expect('Content-Type', /application\/json/);
+describe('Note API', () => {
+  beforeEach(async () => {
+    await NoteModel.deleteMany({});
+    await Promise.all(initialNotes.map((note) => new NoteModel(note).save()));
   });
 
-  test('there are all the initial notes', async () => {
-    const response = await api.get('/api/notes');
-    assert.strictEqual(response.body.length, noteApiTestHelper.initialNotes.length);
+  describe('GET /api/notes', () => {
+    test('notes are returned as JSON', async () => {
+      await api
+        .get('/api/notes')
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+    });
+
+    test('all notes are returned', async () => {
+      const response = await api.get('/api/notes');
+      assert.strictEqual(response.body.length, initialNotes.length);
+    });
+
+    test('a specific note is within the returned notes', async () => {
+      const response = await api.get('/api/notes');
+      const contents = response.body.map((note) => note.content);
+      assert(contents.includes(initialNotes[0].content));
+    });
   });
 
-  test('there is a note about HTML', async () => {
-    const response = await api.get('/api/notes');
-    const contents = response.body.map((r) => r.content);
-    assert(contents.includes('HTML is easy'));
-  });
-});
+  describe('POST /api/notes', () => {
+    test('a valid note can be added', async () => {
+      const newNote = {
+        content: 'async/await simplifies making async calls',
+        important: true,
+      };
 
-describe('viewing a specific note', () => {
-  test("a note's detailes can be viewed", async () => {
-    const notesAtStart = await noteApiTestHelper.notesInDb();
-    const noteToView = notesAtStart[0];
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(201)
+        .expect('Content-Type', /application\/json/);
 
-    const resultNote = await api
-      .get(`/api/notes/${noteToView.id}`)
-      .expect(200)
-      .expect('Content-Type', /application\/json/);
+      const response = await api.get('/api/notes');
+      const contents = response.body.map((note) => note.content);
 
-    assert.deepStrictEqual(resultNote.body, noteToView);
-  });
+      assert.strictEqual(response.body.length, initialNotes.length + 1);
+      assert(contents.includes(newNote.content));
+    });
 
-  test('fails with statuscode 404 if note does not exist', async () => {
-    const validNonexistingId = await noteApiTestHelper.nonExistingId();
-    await api.get(`/api/notes/${validNonexistingId}`).expect(404);
-  });
+    test('note without content is not added', async () => {
+      const newNote = {
+        important: true,
+      };
 
-  test('fails with statuscode 400 if id is invalid', async () => {
-    const invalidId = 'a';
-    await api.get(`/api/notes/${invalidId}`).expect(400);
-  });
-});
+      await api.post('/api/notes').send(newNote).expect(400);
 
-describe('addition of a new note', () => {
-  test('a valid note can be added', async () => {
-    const newNote = {
-      content: 'async/await simplifies making async calls',
-      important: true,
-    };
-
-    await api
-      .post('/api/notes')
-      .send(newNote)
-      .expect(201)
-      .expect('Content-Type', /application\/json/);
-
-    const notesAfter = await noteApiTestHelper.notesInDb();
-    assert.strictEqual(notesAfter.length, noteApiTestHelper.initialNotes.length + 1);
-    const contents = notesAfter.map((r) => r.content);
-
-    assert(contents.includes('async/await simplifies making async calls'));
+      const response = await api.get('/api/notes');
+      assert.strictEqual(response.body.length, initialNotes.length);
+    });
   });
 
-  test('note without content is not added', async () => {
-    const newNote = {
-      important: true,
-    };
+  describe('DELETE /api/notes/:id', () => {
+    test('a note can be deleted', async () => {
+      const response = await api.get('/api/notes');
+      const noteToDelete = response.body[0];
 
-    await api.post('/api/notes').send(newNote).expect(400);
+      await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
 
-    const notesAfter = await noteApiTestHelper.notesInDb();
-    assert.strictEqual(notesAfter.length, noteApiTestHelper.initialNotes.length);
+      const afterResponse = await api.get('/api/notes');
+      assert.strictEqual(afterResponse.body.length, initialNotes.length - 1);
+
+      const contents = afterResponse.body.map((note) => note.content);
+      assert(!contents.includes(noteToDelete.content));
+    });
+
+    test('fails with status code 404 if note does not exist', async () => {
+      // Create a note and then delete it to get a valid but non-existing id
+      const newNote = new NoteModel({
+        content: 'Will be deleted soon',
+        important: false,
+      });
+      const savedNote = await newNote.save();
+      const validNonexistingId = savedNote._id.toString();
+      await NoteModel.findByIdAndDelete(validNonexistingId);
+
+      await api.delete(`/api/notes/${validNonexistingId}`).expect(404);
+    });
+
+    test('fails with status code 400 if id is invalid', async () => {
+      const invalidId = 'notavalidid';
+
+      await api.delete(`/api/notes/${invalidId}`).expect(400);
+    });
   });
-});
 
-describe('deletion of a note', () => {
-  test('a note can be deleted', async () => {
-    const notesBefore = await noteApiTestHelper.notesInDb();
-    const noteToDelete = notesBefore[0];
-
-    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
-
-    const notesAfter = await noteApiTestHelper.notesInDb();
-    assert.strictEqual(notesAfter.length, noteApiTestHelper.initialNotes.length - 1);
-
-    const contents = notesAfter.map((r) => r.content);
-    assert(!contents.includes(noteToDelete.content));
+  after(async () => {
+    await mongoose.connection.close();
   });
-  test('fails with statuscode 404 if note does not exist', async () => {
-    const validNonexistingId = await noteApiTestHelper.nonExistingId();
-    await api.delete(`/api/notes/${validNonexistingId}`).expect(404);
-  });
-});
-
-after(async () => {
-  await mongoose.connection.close();
 });
