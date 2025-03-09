@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan('dev', { skip: middleware.shouldSkipLog }));
+app.use(morgan('dev', { skip: logger.shouldSkipLog }));
 app.use('/api/notes', notesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);

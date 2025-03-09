@@ -1,21 +1,20 @@
 const notesRouter = require('express').Router();
 const Joi = require('joi');
 const NoteModel = require('../models/note');
-const { validateWith } = require('../utils/middleware');
+const { validateWith, authenticate } = require('../utils/middleware');
 const UserModel = require('../models/user');
+const CustomError = require('../utils/custom-error');
 
 // Define the schema for validation
 const noteCreateSchema = Joi.object({
   content: Joi.string().min(5).required(),
   important: Joi.boolean().optional(),
-  userId: Joi.string().required(),
 });
 
 const noteUpdateSchema = Joi.object({
   id: Joi.string().optional(),
   content: Joi.string().min(5).required(),
   important: Joi.boolean().required(),
-  userId: Joi.string().optional(),
 });
 
 // Get all notes
@@ -25,12 +24,13 @@ notesRouter.get('/', async (req, res) => {
 });
 
 // Create a new note
-notesRouter.post('/', validateWith(noteCreateSchema), async (req, res) => {
-  const { content, important = false, userId } = req.body;
+notesRouter.post('/', authenticate, validateWith(noteCreateSchema), async (req, res) => {
+  const { content, important = false } = req.body;
+  const userId = req.authPayload.id;
 
   const user = await UserModel.findById(userId);
   if (!user) {
-    throw new Joi.ValidationError('Invalid userId');
+    throw new CustomError('Invalid userId', 'AuthorizationError');
   }
 
   const note = new NoteModel({
@@ -55,10 +55,14 @@ notesRouter.get('/:id', async (req, res) => {
 });
 
 // Update a note by ID
-notesRouter.put('/:id', validateWith(noteUpdateSchema), async (req, res) => {
+notesRouter.put('/:id', authenticate, validateWith(noteUpdateSchema), async (req, res) => {
+  const userId = req.authPayload.id;
   const note = await NoteModel.findById(req.params.id);
   if (!note) {
     return res.status(404).end();
+  }
+  if (note.user.toString() !== userId) {
+    throw new CustomError('Unauthorized', 'AuthorizationError');
   }
 
   note.content = req.body.content;
@@ -69,11 +73,16 @@ notesRouter.put('/:id', validateWith(noteUpdateSchema), async (req, res) => {
 });
 
 // Delete a note by ID
-notesRouter.delete('/:id', async (req, res) => {
+notesRouter.delete('/:id', authenticate, async (req, res) => {
+  const userId = req.authPayload.id;
   const note = await NoteModel.findByIdAndDelete(req.params.id);
   if (!note) {
     return res.status(404).end();
   }
+  if (note.user.toString() !== userId) {
+    throw new CustomError('Unauthorized', 'AuthorizationError');
+  }
+
   res.status(204).end();
 });
 

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const UserModel = require('../models/user');
+const CustomError = require('../utils/custom-error');
 
 const loginRouter = Router();
 
@@ -12,7 +13,7 @@ loginRouter.post('/', async (req, res) => {
   const user = await UserModel.findOne({ username });
   const credentialCorrect = user && (await bcrypt.compare(password, user.passwordHash));
   if (!credentialCorrect) {
-    throw new Error('Invalid username or password');
+    throw new CustomError('Invalid username or password', 'AuthorizationError');
   }
 
   const userPayload = {
