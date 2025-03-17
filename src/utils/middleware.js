@@ -57,6 +57,10 @@ const errorHandler = (err, req, res, next) => {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  if (err.name === 'NotFoundError') {
+    return res.status(404).json({ error: 'Resource not found' });
+  }
+
   next(err);
 };
 

@@ -57,18 +57,18 @@ notesRouter.get('/:id', async (req, res) => {
 // Update a note by ID
 notesRouter.put('/:id', authenticate, validateWith(noteUpdateSchema), async (req, res) => {
   const userId = req.authPayload.id;
-  const note = await NoteModel.findById(req.params.id);
-  if (!note) {
-    return res.status(404).end();
-  }
-  if (note.user.toString() !== userId) {
-    throw new CustomError('Unauthorized', 'AuthorizationError');
+  const noteId = req.params.id;
+  console.log('userID:', userId);
+  console.log('noteID:', noteId);
+  console.log('request body:', req.body);
+  const updatedNote = await NoteModel.findOneAndUpdate({ user: userId, _id: noteId }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!updatedNote) {
+    throw new CustomError('Note not found', 'NotFoundError');
   }
 
-  note.content = req.body.content;
-  note.important = req.body.important;
-
-  const updatedNote = await note.save();
   res.json(updatedNote);
 });
 
