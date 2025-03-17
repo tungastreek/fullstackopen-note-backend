@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
 const ENVIRONMENT_CONFIG = {
   isTest: process.env.NODE_ENV === 'test',
