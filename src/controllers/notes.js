@@ -58,9 +58,6 @@ notesRouter.get('/:id', async (req, res) => {
 notesRouter.put('/:id', authenticate, validateWith(noteUpdateSchema), async (req, res) => {
   const userId = req.authPayload.id;
   const noteId = req.params.id;
-  console.log('userID:', userId);
-  console.log('noteID:', noteId);
-  console.log('request body:', req.body);
   const updatedNote = await NoteModel.findOneAndUpdate({ user: userId, _id: noteId }, req.body, {
     new: true,
     runValidators: true,
