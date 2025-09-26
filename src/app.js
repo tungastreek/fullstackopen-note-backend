@@ -1,7 +1,6 @@
 const express = require('express');
 require('express-async-errors');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const morgan = require('morgan');
 const crypto = require('crypto');
 
@@ -19,7 +18,6 @@ mongoose
   .catch((error) => logger.error('Error connecting to MongoDB:', error.message));
 
 const app = express();
-app.use(cors());
 app.use(express.static('dist'));
 app.use(express.json());
 
